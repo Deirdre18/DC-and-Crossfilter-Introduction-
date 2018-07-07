@@ -1,0 +1,181 @@
+<!--D3 in itself isn't actually a charting library. It's much richer than
+that. It's a graphics library. In fact you can create 2D animations - actual cartoons
+from D3. And as with all these good ideas somebody has gone and created a specific
+library for charting and that chart library is called DC - dimensional
+charting - that sits on top of D3 and uses D3 and it also uses yet another helper
+library called Crossfilter.-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    
+    <!--Multiple Charts, etc - we have the makings of a dashboard an interactive dashboard but the layout isn't quite right, it could be a lot better, so let's clean that up so to do that we're going to add a style. So let's put a style Block in the head of our HTML file and we target all the div's, so what we want to do is we want to they we want the charts to display in a vertical order down the page, sothe easiest way to do tha apply the clear left styler and we have our three charts. Now remember each chart is bound to the same data set and DC makes our d3 graphics, it makes them interactive event driven, so if you click on these, the data changes.  So I if I click on Alice, I can find out what Alice purchased in Acme versus the Big Company and Florida versus New York. Same as Bob and same as Tom, it's very powerful so I don't have to filter and using drop-down lists or enter in the person's name. Just clicking on the chart itself results in events being triggered and filtering takes place automatically for us, it's very very powerful.-->
+    <style type="text/css">
+    
+        div {
+            clear: left;
+        }
+        
+    </style>
+    
+    
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.min.css" type="text/css" />
+    <!--And as with all these good ideas, somebody has gone and created a specific library for charting and that chart library is called DC - dimensional charting - that sits on top of D3 and uses D3.-->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    
+    
+
+
+<!--It also uses yet another helper library called Crossfilter. Now Crossfilter allows you to work with data to make the charts rendered by DC interactive, so if you click on a particular chart on a dashboard another related chart that is a chart, that's bound to the same data set can react to that click and maybe represent a subset of the data that was represented in another chart, so it's a way of interacting visually. Interacting with your data without having to use traditional drop-down widgets, are free text fields where you're typing in search strings when you want to filter the data in some way.  To use these three libraries you import them in a particular order so you your first script is d3 your second script should be cross filter and your third should be DC because dimensional charting depends on cross filter and they both depend on d3 so the order is important if you if you change the order you might get unexpected results-->
+    
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.min.js"></script>
+</head>
+<body>
+    
+    <h1>Data Visualisation</h1>
+
+    <h2>DC BarChart</h2>
+
+    
+    <!--Multiple Charts with DC and Crossfilter - In our dataset we have three customers Tom, Bob and Alice who shop in two stores - either Acme or the Big Co. across two states - New York and Florida. So let's create a dashboard that reflects those spend trends and the location trends and the shop trends, for example , are there store trends that they buy their products, if so, in order to do that we are going to create three different charts (one for the store, one for the state, and one for the person) and to do that we need to create a div to target our charts for each dimension of data, so remember that we're going to work with three dimensions of data, (1) will be the name dimension, (2) will be the store dimension and (3) will be a state dimension and all of that will be based around the dimension of 'spend'.-->
+    
+    
+    <!--Multiple Charts with DC and Crossfilter - so we're creating three divs give each one a unique ID -->
+    
+   
+    <div>
+        <h3>Total Spend Per Person</h3>
+        <div id="per-person-chart"></div>
+    </div>
+
+    <div>
+        <h3>Total Spend Per Store</h3>
+        <div id="per-store-chart"></div>
+    </div>
+
+    <div>
+        <h3>Total Spend Per State</h3>
+        <div id="per-state-chart"></div>
+    </div>
+   
+    
+    <!--<div id="chart-here"></div>-->
+    
+    <script>
+    
+    //  Introduction to DC and Crossfilter - Now the data we're using here is something that you might typically see on an Excel spreadsheet, it's slightly different in data we were playing with earlier, on which was just integer based, so this is a mixture of strings and numerical values, so what we want to do is to bind our data to a crossfilter object.
+    
+    
+    var transactionsData = [
+        {"name": "Tom", "store": "Acme", "state": "NY", "spend": 100},
+        {"name": "Tom", "store": "Big Co.", "state": "NY", "spend": 200},
+        {"name": "Bob", "store": "Acme", "state": "FL", "spend": 150},
+        {"name": "Bob", "store": "Acme", "state": "NY", "spend": 200},
+        {"name": "Bob", "store": "Big Co.", "state": "FL", "spend": 50},
+        {"name": "Bob", "store": "Big Co.", "state": "NY", "spend": 75},
+        {"name": "Alice", "store": "Acme", "state": "FL", "spend": 200},
+        {"name": "Alice", "store": "Big Co.", "state": "NY", "spend": 350},
+    ];
+
+    //  I mentioned that cross filter allows you to work with data and engage in what's called two-way binding between charts, so don't worry too much about the syntax here.  In this unit we'll be going through this again and again, it's just to get a sense the shape of the syntax and the objects and functions at play here, so once we use filter we create a variable called n DX (it's just a it's a convention like the d and in d3, and then we try to get a dimension and a dimension is a particular column of data that you want to use and to get its values. In our case we want to use the name dimension and then we want to group the names together in order to get some values.
+    var ndx = crossfilter(transactionsData);
+    
+    //  then we try to get a dimension and a dimension is a particular column of data that you want to use and to get its values in our case we want to use the name dimension and then we want to group they the names together in order to get some values from them now cross filters done its job up to a point.
+    
+     //  now cross filters has done its job up to a point here. Then we use DC which is dimensional charting to create a bar chart, because as I mentioned DC has built-in charting for us that's built upon d3. Let's have a look at that, you can see here we have easily created charts, we don't have to go to the trouble of manually creating them to the extent that we did earlier in the d3. So this is just a brief introduction to DC and cross filter. We will explore these a lot more in the coming units.
+    
+    //var name_dim = ndx.dimension(dc.pluck('name'));
+    //var total_spend_per_person = name_dim.group().reduceSum(dc.pluck('spend'));
+    
+    
+    //dc.barChart("#chart-here")
+      //  .width(300)
+        //.height(150)
+        //.margins({top: 10, right: 50, bottom: 30, left: 50})
+        //.dimension(name_dim)
+        //.group(total_spend_per_person)
+        //.transitionDuration(500)
+        //.x(d3.scale.ordinal())
+        //.xUnits(dc.units.ordinal)
+        //.xAxisLabel("Person")
+        //.yAxis().ticks(4);
+
+    //dc.renderAll();
+    
+    
+   
+     //  Multiple Charts with DC and Crossfilter - we will create a bar chart for each div.
+     
+    //  Multiple Charts, etc - I'm going to pluck, we're using DC to pluck all store elements from our data set.
+    
+    //  Creating Store Dimension
+    var store_dim = ndx.dimension(dc.pluck('store'));
+    
+    //  Multiple Charts, etc - and we're going to group and reduce some, so we're going to group all and all the stores and reduce some. Then what it does is it sums up the amount they spend at each store and magically maps that and binds that to to our chart (A lot of this will seem a bit like magic in the beginning, as you get used to these, because so much effort and heavy lifting is taken care of underneath the hood via cross filter and DC for us, but it's it's hugely powerful and you can get up to speed creating rich interactive dashboards quite quickly, which is what we're going to do now). So let's change our 'x' axis for each and group total.
+   
+     
+    var total_spend_per_store = store_dim.group().reduceSum(dc.pluck('spend'));
+    
+     dc.barChart("#per-store-chart")
+        .width(300)
+        .height(150)
+        .margins({top: 10, right: 50, bottom: 30, left: 50})
+        .dimension(store_dim)
+        .group(total_spend_per_store)
+        .transitionDuration(500)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .xAxisLabel("Store")
+        .yAxis().ticks(4);
+
+ 
+    //  Multiple Charts, etc - Then we just can rename our parts of our code from the last example and mainly it's a case of copy and paste with some minor changes.  
+    
+    //Creating Person dimension
+     var name_dim = ndx.dimension(dc.pluck('name'));
+     
+     var total_spend_per_person = name_dim.group().reduceSum(dc.pluck('spend'));
+    
+     dc.barChart("#per-person-chart")
+        .width(300)
+        .height(150)
+        .margins({top: 10, right: 50, bottom: 30, left: 50})
+        .dimension(name_dim)
+        .group(total_spend_per_person)
+        .transitionDuration(500)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .xAxisLabel("Person")
+        .yAxis().ticks(4);
+
+    
+    //Creating State dimension
+     var state_dim = ndx.dimension(dc.pluck('state'));
+     
+     var total_spend_per_state = state_dim.group().reduceSum(dc.pluck('spend'));
+    
+     dc.barChart("#per-state-chart")
+        .width(300)
+        .height(150)
+        .margins({top: 10, right: 50, bottom: 30, left: 50})
+        .dimension(state_dim)
+        .group(total_spend_per_state)
+        .transitionDuration(500)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .xAxisLabel("State")
+        .yAxis().ticks(4);
+
+    dc.renderAll();
+    </script>
+    
+</body>
+</html>
